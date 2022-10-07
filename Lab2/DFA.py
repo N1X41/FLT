@@ -27,6 +27,18 @@ class DFA(object):
                 return transition[2]
         return False
 
+    def word_in_machine(self, word):
+        last_state = self.start
+        for letter in word:
+            if not self.transformation(last_state, letter):
+                return False
+            else:
+                last_state = self.transformation(last_state, letter)
+        if last_state in self.final_states:
+            return last_state
+        else:
+            return False
+
     def trans_directions(self, start, with_loops):
         result = []
         for transition in self.transform:
