@@ -6,7 +6,11 @@ class DFA(object):
         self.transform = transform
         self.alphabet = alphabet
         self.correct_states = []
-        self.is_it_d(self.final_states)
+        self.without_not_possible = []
+        self.without_traps = []
+        self.delete_not_possible([self.start])
+        self.delete_traps(self.final_states)
+        self.intersection_list()
         self.correct_dfa()
 
     def print(self):
@@ -35,15 +39,30 @@ class DFA(object):
         result.sort()
         return result
 
-    def is_it_d(self, states):
+    def delete_not_possible(self, states):
         new_states = []
         for rule in self.transform:
             for state in states:
-                if state == rule[2] and rule[0] != rule[2] and rule[0] not in self.correct_states:
-                    self.correct_states.append(rule[0])
+                if state == rule[0] and rule[0] != rule[2] and rule[2] not in self.without_not_possible:
+                    self.without_not_possible.append(rule[2])
+                    new_states.append(rule[2])
+        if len(new_states) != 0:
+            self.delete_not_possible(new_states)
+
+    def delete_traps(self, states):
+        new_states = []
+        for rule in self.transform:
+            for state in states:
+                if state == rule[2] and rule[0] != rule[2] and rule[0] not in self.without_traps:
+                    self.without_traps.append(rule[0])
                     new_states.append(rule[0])
         if len(new_states) != 0:
-            self.is_it_d(new_states)
+            self.delete_traps(new_states)
+
+    def intersection_list(self):
+        self.correct_states = [value for value in self.without_not_possible if value in self.without_traps]
+        self.correct_states.append(self.start)
+
 
     def correct_dfa(self):
         rules_to_remove = []

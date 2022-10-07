@@ -1,6 +1,7 @@
 import itertools
 from Secondary_functions import *
 
+
 class Monoid(object):
     def __init__(self, alphabet):
         self.alphabet = alphabet
