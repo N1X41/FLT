@@ -1,26 +1,41 @@
 from Secondary_functions import *
 
-# Формат ввода :
-# [S] -> [P][I]a
-# [P] -> [P]b
-# [P] -> z
-# [I] -> [I]z
-# [I] -> [B]b
-# [I] -> c
-# [I] -> [I][P]b
-# [B] -> [B]b
-# [B] -> c
-# [B] -> [I][P]d
-
 if __name__ == "__main__":
     lines = read()
     grammar = parser(lines)
+    grammar_lr = parser(lines)
+
+    # Чистим грамматику от одинарных и пустых переходов
+    grammar.clean()
+    grammar_lr.clean()
 
     print('\nИсходная грамматика : ')
     grammar.print()
 
+    # Сперва приведем грамматику к форме Грейбах по средствам устраниния левой рекурсии
+    print('\nГрамматика, полученная путем устранения левосторонней рекусии :')
+    grammar_lr.make_queue()
+    for nont in grammar_lr.nonterms:
+        if nont.queue != -1:
+            grammar_lr.correct_nonterms_lr(nont.name)
+    grammar_lr.nonterms.sort(key=lambda x: x.queue)
+    for nont in grammar_lr.nonterms:
+        if nont.queue > 0:
+            grammar_lr.remove_highest_nonterm(nont.name)
+    grammar_lr.update_queue()
+    grammar_lr.nonterms.sort(key=lambda x: x.queue)
+    for nont in grammar_lr.nonterms:
+        grammar_lr.remove_highest_nonterm(nont.name)
+        grammar_lr.correct_nonterms_lr(nont.name)
+    grammar_lr.remove_terms()
+    grammar_lr.remove_lr()
+    grammar_lr.print()
+
+
+
     # Рекурсивно собираем один автомат, условно поделенный на блоки, после чего собираем массив отдельных автоматов
-    automaton = make_automaton(grammar, grammar.nonterms[0].name, True, [], need_to_be_made(grammar))
+    automaton = make_automaton(grammar, grammar.nonterms[0].name, grammar.nonterms[0].name, True, [],
+                               need_to_be_made(grammar))
     automatons = make_updated_grammar(automaton)
 
     for auto in automatons:
@@ -43,12 +58,15 @@ if __name__ == "__main__":
                     new_rule = ''
                     for peace in return_listed_rule(rule):
                         if peace in grammar.return_nonterms():
-                            new_rule += '[0' + peace[1:]
+                            new_rule += '[N_' + peace[1:]
                         else:
                             new_rule += peace
                     new_nont.rules.append(new_rule)
                 else:
                     new_nont.rules.append(rule)
             new_grammar.nonterms.append(new_nont)
-    print('\nНовая грамматика :')
+    new_grammar.clean()
+    new_grammar.remove_terms()
+    new_grammar.remove_lr()
+    print('\nНовая грамматика, полученная методом Блюма-Коха :')
     new_grammar.print()

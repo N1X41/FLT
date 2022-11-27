@@ -23,77 +23,63 @@ def make_clean_line(line):
     return answer
 
 
-# def make_automaton(grammar):
-#     automaton = Automaton([])
-#     for nont in grammar.nonterms:
-#         for rule in nont.rules:
-#             if rule[0] not in grammar.return_nonterms() and rule[0] != '[':
-#                 if '0'+nont.name not in automaton.return_end_states():
-#                     state = State('1'+nont.name, '0'+nont.name, [rule])
-#                     automaton.states.append(state)
-#                 else:
-#                     for state in automaton.states:
-#                         if state.end == '0'+nont.name and state.start == '1'+nont.name:
-#                             state.rules.append(rule)
-#             else:
-#                 nt_end = 1
-#                 for letter in rule:
-#                     if letter != ']':
-#                         nt_end += 1
-#                     else:
-#                         break
-#                 if ['1'+nont.name, '1'+rule[:nt_end]] in automaton.return_pairs():
-#                     for state in automaton.states:
-#                         if state.end == '1'+rule[:nt_end] and state.start == '1'+nont.name:
-#                             state.rules.append(rule[nt_end:])
-#                 else:
-#                     state = State('1'+nont.name, '1'+rule[:nt_end], [rule[nt_end:]])
-#                     automaton.states.append(state)
-#     return automaton
+def make_new(*args, task):
+    if task == 1:
+        return args[0][:len(args[0]) - 1] + '_' + args[1][1:]
+    else:
+        return '[N_' + args[0][1:]
 
-def make_automaton(grammar, nonterm, first_term, made, make_automatons):
+
+def make_automaton(grammar, nonterm, auto_nt, first_term, made, make_automatons):
     automaton = Automaton([])
-    if nonterm == grammar.nonterms[0].name:
+    if auto_nt == grammar.nonterms[0].name and first_term:
         state_flag = State('Автомат для ', nonterm, ['----------------'])
         automaton.states.append(state_flag)
-    if first_term:
-        made.append(nonterm)
+    # if first_term:
+    made.append(nonterm)
     for nont in grammar.nonterms:
         if nont.name == nonterm:
             for rule in nont.rules:
-                if rule[0] not in grammar.return_nonterms() and rule[0] != '[':
-                    if ['1'+nont.name, '0'+nont.name] not in automaton.return_pairs():
-                        state = State('1'+nont.name, '0'+nont.name, [rule])
+                if return_listed_rule(rule)[0] not in grammar.return_nonterms():
+                    if [make_new(nont.name, auto_nt, task=1), make_new(nont.name, task=0)] not in \
+                            automaton.return_pairs():
+                        state = State(make_new(nont.name, auto_nt, task=1), make_new(auto_nt, task=0), [rule])
                         automaton.states.append(state)
                     else:
                         for state in automaton.states:
-                            if state.end == '0'+nont.name and state.start == '1'+nont.name:
+                            if state.end == make_new(nont.name, auto_nt, task=1) and state.start == \
+                                    make_new(auto_nt, task=0):
                                 state.rules.append(rule)
                 else:
                     nt_end = get_end(rule)
                     if return_nont_from_rule(rule)[0] == nont.name:
-                        if '1' + nont.name not in automaton.return_end_states():
-                            state = State('1' + nont.name, '1' + nont.name, [rule[nt_end:]])
+                        if nont.name + '_' + nont.name not in automaton.return_end_states():
+                            state = State(make_new(nont.name, auto_nt, task=1),
+                                          make_new(nont.name, auto_nt, task=1), [rule[nt_end:]])
                             automaton.states.append(state)
                         else:
                             for state in automaton.states:
-                                if state.end == '1' + nont.name and state.start == '1' + nont.name:
+                                if state.end == make_new(nont.name, auto_nt, task=1) and state.start == \
+                                        make_new(nont.name, auto_nt, task=1):
                                     state.rules.append(rule[nt_end:])
                     else:
-                        state = State('1' + nont.name, '1' + return_nont_from_rule(rule)[0], [rule[nt_end:]])
+                        state = State(make_new(nont.name, auto_nt, task=1),
+                                      make_new(return_nont_from_rule(rule)[0], auto_nt, task=1), [rule[nt_end:]])
                         automaton.states.append(state)
                         if return_nont_from_rule(rule)[0] not in made:
-                            new_states = make_automaton(grammar, rule[:nt_end], False, made, make_automatons).states
+                            new_states = make_automaton(grammar, rule[:nt_end], auto_nt, False, made,
+                                                        make_automatons).states
                             for state in new_states:
-                                if state.end[0] == '0':
-                                    state.end = '0' + nont.name
+                                if state.end[:2] == '[N':
+                                    state.end = make_new(auto_nt, task=0)
                             automaton.states += new_states
-    if first_term:
+    if first_term and auto_nt == grammar.nonterms[0].name:
+        if auto_nt in make_automatons:
+            make_automatons.remove(auto_nt)
         for nont in make_automatons:
-            if nont not in made:
-                state_flag = State('Автомат для ', nont, ['----------------'])
-                automaton.states.append(state_flag)
-                automaton.states += make_automaton(grammar, nont, True, made, make_automatons[1:]).states
+            state_flag = State('Автомат для ', nont, ['----------------'])
+            automaton.states.append(state_flag)
+            automaton.states += make_automaton(grammar, nont, nont, True, [], []).states
     return automaton
 
 
@@ -166,6 +152,7 @@ def return_listed_rule(rule):
         if not is_reading and letter != ']':
             answer.append(letter)
     return answer
+
 
 def get_end(rule):
     nt_end = 1

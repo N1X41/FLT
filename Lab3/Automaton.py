@@ -41,12 +41,10 @@ class Automaton(object):
         new_lines = []
         for state in self.states:
             for rule in state.rules:
-                if state.start[1:] != nonterm:
-                    new_lines.append('[' + state.end[0] + state.end[2:] + ' -> ' + rule + '[' + state.start[0] +
-                                     state.start[2:])
+                if state.start != sf.make_new(nonterm, nonterm, task=1):
+                    new_lines.append(state.end + ' -> ' + rule + state.start)
                 else:
-                    new_lines.append('[' + state.end[0] + state.end[2:] + ' -> ' + rule + '[' + state.start[0] +
-                                     state.start[2:])
-                    new_lines.append('[' + state.end[0] + state.end[2:] + ' -> ' + rule)
+                    new_lines.append(state.end + ' -> ' + rule + state.start)
+                    new_lines.append(state.end + ' -> ' + rule)
         new_grammar = sf.parser(new_lines)
         return new_grammar
