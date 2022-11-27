@@ -14,11 +14,12 @@ if __name__ == "__main__":
 
     # Сперва приведем грамматику к форме Грейбах по средствам устраниния левой рекурсии
     print('\nГрамматика, полученная путем устранения левосторонней рекусии :')
-    grammar_lr.make_queue()
     for nont in grammar_lr.nonterms:
-        if nont.queue != -1:
+        if nont.queue != -2:
             grammar_lr.correct_nonterms_lr(nont.name)
+    grammar_lr.make_queue_test2()
     grammar_lr.nonterms.sort(key=lambda x: x.queue)
+    print(grammar_lr.return_nonterms())
     for nont in grammar_lr.nonterms:
         if nont.queue > 0:
             grammar_lr.remove_highest_nonterm(nont.name)
@@ -30,8 +31,10 @@ if __name__ == "__main__":
     grammar_lr.remove_terms()
     grammar_lr.remove_lr()
     grammar_lr.print()
-
-
+    # count = 0
+    # for nont in grammar_lr.nonterms:
+    #     count += len(nont.rules)
+    # print(count)
 
     # Рекурсивно собираем один автомат, условно поделенный на блоки, после чего собираем массив отдельных автоматов
     automaton = make_automaton(grammar, grammar.nonterms[0].name, grammar.nonterms[0].name, True, [],
@@ -70,3 +73,7 @@ if __name__ == "__main__":
     new_grammar.remove_lr()
     print('\nНовая грамматика, полученная методом Блюма-Коха :')
     new_grammar.print()
+    count = 0
+    for nont in new_grammar.nonterms:
+        count += len(nont.rules)
+    print(count)

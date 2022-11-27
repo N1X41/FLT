@@ -87,8 +87,8 @@ class Grammar(object):
                 to_del.append(nont)
         for dell in to_del:
             self.nonterms.remove(dell)
-        for nont in self.nonterms:
-            nont.rules = list(set(nont.rules))
+        # for nont in self.nonterms:
+        #     nont.rules = list(set(nont.rules))
 
     def remove_lr(self):
         for nont in self.nonterms:
@@ -150,6 +150,25 @@ class Grammar(object):
                         if nt.name == item and nt.queue == -1:
                             nt.queue = max
                             max += 1
+
+    def make_queue_test(self):
+        for nont in self.nonterms:
+            count = 0
+            for rule in nont.rules:
+                for item in sf.return_nont_from_rule(rule):
+                    if item in self.return_nonterms():
+                        count += 1
+            nont.queue = count
+        # self.nonterms.sort(key=lambda x : x.queue)
+        # for i in range(int(len(self.nonterms) / 2)):
+        #     helper = self.nonterms[i].queue
+        #     self.nonterms[i].queue = self.nonterms[len(self.nonterms) - 1 - i].queue
+        #     self.nonterms[len(self.nonterms) - 1 - i].queue = helper
+
+    def make_queue_test2(self):
+        for nont in self.nonterms:
+            if nont.name[:4] != '[N_':
+                nont.queue = len(nont.rules)
 
     def update_queue(self):
         for nont in self.nonterms:
@@ -221,6 +240,7 @@ class Grammar(object):
                         new_rules.append(rule + '[N_' + nonterm[1:])
                     nont.rules += new_rules
                     if not already_added and new_nonterm.rules != []:
+                        new_nonterm.queue = -2
                         self.nonterms.append(new_nonterm)
                     else:
                         for nont in self.nonterms:
