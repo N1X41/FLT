@@ -2,12 +2,10 @@ from solving import *
 
 
 if __name__ == '__main__':
-    equation = "AABxyyxBB=AAyBxxyAB"
-    variables, constants, leftPart, rightPart = process_equation(equation)
+    # system = System(["AABxyyxBB=AAyBxxAyB"])
+    system = System(["AABxyyxBB=AAyBxxAyB", "ABxyyx=AyBxxy", "Axxyyx=xxyyxA"])
 
-    print("Левая часть уравнения: " + (''.join([var.name for var in leftPart.equation])).replace(' ', ''))
-
-    print("\nПравая часть уравнения: " + (''.join([var.name for var in rightPart.equation])).replace(' ', ''))
+    variables, constants, system = process_equation(system)
 
     print("\nУникальные переменные:")
     for var in variables:
@@ -17,9 +15,16 @@ if __name__ == '__main__':
     for const in constants:
         print(const.name)
 
-    leftPart, rightPart = solv(leftPart, rightPart, variables, constants)
+    for equation in system.system:
+        print("\nЛевая часть уравнения: " + (''.join([var.name for var in equation[0].equation])).replace(' ', ''))
+        print("Правая часть уравнения: " + (''.join([var.name for var in equation[1].equation])).replace(' ', ''))
 
-    print("\nУпрощенная левая часть уравнения: " + (''.join([var.name for var in leftPart.equation])).replace(' ', ''))
+    system = solv(system, variables, constants)
 
-    print("\nУпрощенная правая часть уравнения: " +
-          (''.join([var.name for var in rightPart.equation])).replace(' ', ''))
+
+
+    for equation in system.system:
+        print("\nУпрощенная левая часть уравнения: " +
+              (''.join([var.name for var in equation[0].equation])).replace(' ', ''))
+        print("Упрощенная правая часть уравнения: " +
+              (''.join([var.name for var in equation[1].equation])).replace(' ', ''))
