@@ -60,7 +60,7 @@ def simplification(left, right, consts):
 def splitting_by_length(system, vars, consts):
     new_system = copy.deepcopy(system)
     for equation in system.system:
-        lenght = max(len(equation[0].equation), len(equation[1].equation)) - 1
+        lenght = min(len(equation[0].equation), len(equation[1].equation)) - 1
         while lenght > 0:
             state = True
             for var in vars:
@@ -82,7 +82,30 @@ def splitting_by_length(system, vars, consts):
             else:
                 lenght -= 1
                 if lenght == 0:
-                    new_system.system.append(equation)
+                    lenght = min(len(equation[0].equation), len(equation[1].equation)) - 1
+                    while lenght > 0:
+                        state = True
+                        print("abc"[-2:])
+                        for var in vars:
+                            if [elem.name for elem in equation[0].equation[-lenght:]].count(var.name) != \
+                                    [elem.name for elem in equation[1].equation[-lenght:]].count(var.name):
+                                state = False
+                                break
+                        for const in consts:
+                            if [elem.name for elem in equation[0].equation[-lenght:]].count(const.name) != \
+                                    [elem.name for elem in equation[1].equation[-lenght:]].count(const.name):
+                                state = False
+                                break
+                        if state:
+                            new_system.system.append((EquationPart(equation[0].equation[:-lenght])
+                                                      , EquationPart(equation[1].equation[:-lenght])))
+                            new_system.system.append((EquationPart(equation[0].equation[-lenght:])
+                                                      , EquationPart(equation[1].equation[-lenght:])))
+                            lenght = 0
+                        else:
+                            lenght -= 1
+                            if lenght == 0:
+                                new_system.system.append(equation)
         new_system.system.pop(0)
     return new_system
 
