@@ -119,13 +119,47 @@ def splitting_by_length(system, vars, consts):
     if splited:
         return splitting_by_length(new_system, vars, consts)
     else:
+        new_system.system = list(set(new_system.system))
         return new_system
 
 
+def check_previous_up(graph, system, count):
+    if graph.number == 0:
+        return False
+    else:
+        for gr in graph.children:
+            result = check_previous_down(gr, system, count)
+            if result:
+                count += 1
+                if count > 1:
+                    return True
+        if graph.node.make_string_system() != system.make_string_system():
+            return check_previous_up(graph.parent, system, count)
+        else:
+            return False
+
+
+def check_previous_down(graph, system, count):
+    if graph.node.make_string_system() == system.make_string_system():
+        return False
+    else:
+        for gr in graph.children:
+            result = check_previous_down(gr, system, count)
+            if result:
+                count += 1
+                if count > 1:
+                    return True
+        return False
+
+
 def check(graph):  # 0 - требует разбор, 1 - найдено решение, 2 - найдено противоречие, 3 - превышен лимит погружения
-    if graph.number == 5:
+    if graph.number == 3:
         graph.ended = 3
         # print("\n Превышен лимит погружения на ветке")
+        return
+    if check_previous_up(graph.parent, graph.node, 0):
+        graph.ended = 4
+        print("\n Система свернулась")
         return
     founded_var = False
     for equation in graph.node.system:
@@ -142,6 +176,7 @@ def check(graph):  # 0 - требует разбор, 1 - найдено реш�
             graph.ended = 0
     if graph.ended == 1:
         print("\n Найдено решение на ветке")
+        print(graph.thread(graph))
         return
 
 
@@ -164,6 +199,7 @@ def levi(graph):
             if result is not None:
                 new_system.system.append(result)
                 new_system.system.pop()
+        print(new_system.print_system())
         new_system = splitting_by_length(new_system, vars, consts)
         new_child = Graph(graph.number + 1, new_system, new_transition, graph, [], 0)
         check(new_child)
