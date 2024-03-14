@@ -4,6 +4,7 @@ from solving import *
 if __name__ == '__main__':
     # start_system = System(["AABy=yBAA"])
     start_system = System(["Axxyyx=xxyxAAA"])
+    # start_system = System(["A=AA"])
 
     variables, constants, start_system = process_equation(start_system)
 

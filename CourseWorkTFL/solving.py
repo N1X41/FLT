@@ -114,7 +114,7 @@ def splitting_by_length(system, vars, consts):
                             lenght -= 1
                             if lenght == 0:
                                 new_system.system.append(equation)
-        if min(len(equation[0].equation), len(equation[1].equation)) - 1 != 0:
+        if min(len(equation[0].equation), len(equation[1].equation)) - 1 > 0:
             new_system.system.pop(0)
     if splited:
         return splitting_by_length(new_system, vars, consts)
@@ -153,7 +153,7 @@ def check_previous_down(graph, system, count):
 
 
 def check(graph):  # 0 - требует разбор, 1 - найдено решение, 2 - найдено противоречие, 3 - превышен лимит погружения
-    if graph.number == 3:
+    if graph.number == 5:
         graph.ended = 3
         # print("\n Превышен лимит погружения на ветке")
         return
@@ -168,6 +168,7 @@ def check(graph):  # 0 - требует разбор, 1 - найдено реш�
             if equation[0].equation != equation[1].equation:
                 graph.ended = 2
                 # print("\n Найдено противоречие на ветке")
+                # print(graph.thread(graph))
                 return
             elif not founded_var:
                 graph.ended = 1
@@ -178,6 +179,10 @@ def check(graph):  # 0 - требует разбор, 1 - найдено реш�
         print("\n Найдено решение на ветке")
         print(graph.thread(graph))
         return
+
+
+def find_optimal_transition():
+    return 0
 
 
 def levi(graph):
@@ -199,7 +204,6 @@ def levi(graph):
             if result is not None:
                 new_system.system.append(result)
                 new_system.system.pop()
-        print(new_system.print_system())
         new_system = splitting_by_length(new_system, vars, consts)
         new_child = Graph(graph.number + 1, new_system, new_transition, graph, [], 0)
         check(new_child)
