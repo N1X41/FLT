@@ -1,3 +1,5 @@
+from variable import *
+
 class EquationPart:
     def __init__(self, equation):
         self.equation = equation
@@ -7,6 +9,13 @@ class EquationPart:
 
     def __hash__(self):
         return hash(''.join(self.make_string()))
+
+    def count(self):
+        result = 0
+        for part in self.equation:
+            if isinstance(part, Variable):
+                result += 1
+        return result
 
     def make_string(self):
         return [part.name for part in self.equation]
