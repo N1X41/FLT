@@ -39,9 +39,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<GlobalKey<FormState>> _formKeys = [GlobalKey<FormState>()];
-  // final List<Node> _nodes = [
-  //   Node.Id(MyNode(equations: [createEquation('=')]))
-  // ];
+  final List<TextEditingController> _controllers = [TextEditingController()];
   final List<String> _variables = [];
   final List<String> _constants = [];
 
@@ -93,6 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             children: [
                               Expanded(
                                 child: TextFormField(
+                                  controller: _controllers[index],
                                   decoration: const InputDecoration(
                                     labelText: 'Уравнение',
                                     hintText: 'Ax = Bz',
@@ -113,11 +112,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                           clearGraph(_graph);
                                           _graph.addNode(Node.Id(MyNode(
                                               equations: [
-                                                createEquation('=')
+                                                for (TextEditingController text
+                                                    in _controllers)
+                                                  createEquation(text.text)
                                               ])));
-                                          _graph.nodes[0].key!.value
-                                                  .equations[index] =
-                                              (createEquation(value));
                                           getVarsAndConstsFromList(
                                               _graph.nodes[0].key!.value
                                                   .equations,
@@ -135,13 +133,19 @@ class _MyHomePageState extends State<MyHomePage> {
                                 onPressed: () {
                                   setState(() {
                                     _formKeys.removeAt(index);
+                                    _controllers.removeAt(index);
                                     if (_graph.nodes.isNotEmpty) {
-                                      _graph.nodes[0].key!.value.equations
-                                          .removeAt(index);
+                                      clearGraph(_graph);
+                                      _graph.addNode(Node.Id(MyNode(equations: [
+                                        for (TextEditingController text
+                                            in _controllers)
+                                          createEquation(text.text)
+                                      ])));
                                       getVarsAndConstsFromList(
                                           _graph.nodes[0].key!.value.equations,
                                           _variables,
                                           _constants);
+                                      solve(_graph, 0);
                                     }
                                   });
                                 },
@@ -160,6 +164,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         onPressed: () {
                           setState(() {
                             _formKeys.add(GlobalKey<FormState>());
+                            _controllers.add(TextEditingController());
                             if (_graph.nodes.isNotEmpty) {
                               _graph.nodes[0].key!.value.equations
                                   .add(createEquation('='));

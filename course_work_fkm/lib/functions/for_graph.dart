@@ -29,6 +29,9 @@ solve(Graph graph, int index) {
   // Если неразрешима - заркываем ветку и выходим
   if (isFalseEquation(graph.nodes[index].key!.value.equations)) return;
 
+  // Если уже есть идентичное решение - закрываем ветку
+  if (isAlreadyExist(graph, index)) return;
+
   // Получаем актальный список переменных и констант
   getVarsAndConstsFromList(
       graph.nodes[0].key!.value.equations, variables, constants);
@@ -47,6 +50,7 @@ solve(Graph graph, int index) {
   solve(graph, graph.nodes.length - 1);
 }
 
+/// Отметка разрешенной ветки
 void makeIsInSolution(Graph graph, int index) {
   graph.nodes[index].key!.value.isInSolution = true;
   if (graph.nodes[index].key!.value.parent != null) {
@@ -66,6 +70,27 @@ bool isSolved(List<Equation> equations) {
 bool isFalseEquation(List<Equation> equations) {
   for (Equation equation in equations) {
     if (equation.isFalse()) return true;
+  }
+  return false;
+}
+
+/// Проверка на наличие идентичного узла
+bool isAlreadyExist(Graph graph, int index) {
+  if (index == 0) return false;
+  for (int i = 0; i < graph.nodes.length; i++) {
+    bool result = true;
+    if (i != index) {
+      if (graph.nodes[index].key!.value.equations.length ==
+          graph.nodes[i].key!.value.equations.length) {
+        for (int j = 0; j < graph.nodes[index].key!.value.equations.length; j++)
+          if (result &&
+              graph.nodes[index].key!.value.equations[j] !=
+                  graph.nodes[i].key!.value.equations[j]) result = false;
+      } else
+        result = false;
+    } else
+      result = false;
+    if (result) return true;
   }
   return false;
 }
@@ -122,6 +147,12 @@ void createNodeByRule(Graph graph, int index, Rule rule) {
             .replaceAll(rule.variable, rule.rule));
     newNode.equations.add(equation);
   }
+
+  newNode.equations.sort(
+    (a, b) {
+      return (a.left + a.right).compareTo(b.left + b.right);
+    },
+  );
 
   newNode.parent = index;
   newNode.rule = rule;

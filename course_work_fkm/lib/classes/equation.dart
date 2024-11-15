@@ -11,6 +11,15 @@ class Equation {
     required this.right,
   });
 
+  @override
+  bool operator ==(Object other) {
+    // Проверяем, является ли other экземпляром Equation
+    if (other is! Equation) return false;
+
+    // Сравниваем left и right
+    return left == other.left && right == other.right;
+  }
+
   bool isSolved() {
     return left == right;
   }
