@@ -17,9 +17,13 @@ class MyNode {
   /// Является ли узел частью ветки решения
   bool isInSolution;
 
+  /// Глубина развертки
+  int depth;
+
   // Конструктор класса Node
   MyNode({
     required this.equations,
+    required this.depth,
     int? parent,
     Rule? rule,
     List<int>? children,
@@ -44,6 +48,7 @@ class MyNode {
       equations: equations,
       parent: parent,
       rule: rule,
+      depth: depth,
     );
   }
 }

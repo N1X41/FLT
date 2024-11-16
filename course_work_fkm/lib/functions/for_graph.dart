@@ -12,10 +12,9 @@ void clearGraph(Graph graph) {
 solve(Graph graph, int index) {
   List<String> variables = [];
   List<String> constants = [];
-  Rule rule = Rule(variable: '', rule: '');
 
   // Тестовое уловие
-  if (index > 10) return;
+  if (graph.nodes[index].key!.value.depth > 5) return;
 
   // Если система решена - выходим
   if (graph.nodes[0].key!.value.isInSolution) return;
@@ -34,20 +33,14 @@ solve(Graph graph, int index) {
 
   // Получаем актальный список переменных и констант
   getVarsAndConstsFromList(
-      graph.nodes[0].key!.value.equations, variables, constants);
+      graph.nodes[index].key!.value.equations, variables, constants);
 
-  // Получаем правило из преф/суфф, иначе первую из списка
-  rule = chooseVarForRule(
-          graph.nodes[0].key!.value.equations, variables, constants) ??
-      Rule(variable: variables[0], rule: variables[0] + constants[0]);
-
-  // Создаем узел с переходом в Е и запускаем его решение
-  createNodeByRule(graph, index, Rule(variable: rule.variable, rule: ''));
-  solve(graph, graph.nodes.length - 1);
-
-  // Создаем узел на основе правила преобразования и запускаем его решение
-  createNodeByRule(graph, index, rule);
-  solve(graph, graph.nodes.length - 1);
+  for (Rule rule in getAllRules(graph.nodes[0].key!.value.equations, variables, constants)){
+    if (!graph.nodes[0].key!.value.isInSolution) {
+      createNodeByRule(graph, index, rule);
+      solve(graph, graph.nodes.length - 1);
+    }
+  }
 }
 
 /// Отметка разрешенной ветки
@@ -96,42 +89,51 @@ bool isAlreadyExist(Graph graph, int index) {
 }
 
 /// Выбор правила для преобразования
-Rule? chooseVarForRule(
-    List<Equation> equations, List<String> variables, List<String> constants) {
-  for (Equation equation in equations) {
-    // Проверка наличия переменной - константы на префиксах
-    if ((variables.contains(equation.left[0]) &&
-            constants.contains(equation.right[0])) ||
-        (variables.contains(equation.right[0]) &&
-            constants.contains(equation.left[0]))) {
-      if (variables.contains(equation.left[0])) {
-        return Rule(
-            variable: equation.left[0],
-            rule: equation.right[0] + equation.left[0]);
+List<Rule> getAllRules(
+  List<Equation> equations, List<String> variables, List<String> constants) {
+  List<Rule> rules = [];
+  // Для каждой переменной создаем список по уровню ликвидности
+  for (String vr in variables) {
+    // Добавляем пустой переход
+    rules.add(Rule(variable: vr, rule: ''));
+    for (String constant in constants) {
+      // Создаем два листа - префиксные/суффиксные переходы, и "необоснованные"
+      List<Rule> effective = [];
+      List<Rule> nonEffective = [];
+      // Проверка наличия переменной - константы на префиксах/суффиксах
+      if (isPrefix(equations, vr, constant) || isSuffix(equations, vr, constant)) {
+        if (isPrefix(equations, vr, constant))
+          effective.add(Rule(variable: vr, rule: constant + vr));
+        if (isSuffix(equations, vr, constant))
+          effective.add(Rule(variable: vr, rule: vr + constant));
       } else {
-        return Rule(
-            variable: equation.right[0],
-            rule: equation.left[0] + equation.right[0]);
+        nonEffective.add(Rule(variable: vr, rule: constant + vr));
+        nonEffective.add(Rule(variable: vr, rule: vr + constant));
       }
-      // Проверка наличия переменной - константы на суффиксах
-    } else if ((variables.contains(equation.left[equation.left.length - 1]) &&
-            constants.contains(equation.right[equation.right.length - 1])) ||
-        (variables.contains(equation.right[equation.right.length - 1]) &&
-            constants.contains(equation.left[equation.left.length - 1]))) {
-      if (variables.contains(equation.left[equation.left.length - 1])) {
-        return Rule(
-            variable: equation.left[equation.left.length - 1],
-            rule: equation.right[equation.right.length - 1] +
-                equation.left[equation.left.length - 1]);
-      } else {
-        return Rule(
-            variable: equation.right[equation.right.length - 1],
-            rule: equation.left[equation.left.length - 1] +
-                equation.right[equation.right.length - 1]);
-      }
+      rules.addAll(effective);
+      rules.addAll(nonEffective);
     }
-  }
-  return null;
+  } return rules;
+}
+
+/// Проверка на префикс
+bool isPrefix(List<Equation> equations, String variable, String constant){
+  for (Equation equation in equations){
+    if ((variable == equation.left[0] &&
+                constant == equation.right[0]) ||
+            (variable == equation.right[0] &&
+                constant == equation.left[0])) return true;
+  } return false;
+}
+
+/// Проверка на суффикс
+bool isSuffix(List<Equation> equations, String variable, String constant){
+  for (Equation equation in equations){
+    if ((variable == equation.left[equation.left.length - 1] &&
+                constant == equation.right[equation.right.length - 1]) ||
+            (variable == equation.right[equation.right.length - 1] &&
+                constant == equation.left[equation.left.length - 1])) return true;
+  } return false;
 }
 
 /// Создание нового узла
@@ -145,7 +147,11 @@ void createNodeByRule(Graph graph, int index, Rule rule) {
             .replaceAll(rule.variable, rule.rule),
         right: graph.nodes[index].key!.value.equations[i].right
             .replaceAll(rule.variable, rule.rule));
-    newNode.equations.add(equation);
+    // Проверяем, что нет идентичного уравнения
+    //TODO(Vlad): Доделать метод сокращения уравнений
+    // equation.simplify();
+    if (newNode.equations.every((eq) => eq != equation) && equation.left + equation.right != '')
+      newNode.equations.add(equation);
   }
 
   newNode.equations.sort(
@@ -156,6 +162,7 @@ void createNodeByRule(Graph graph, int index, Rule rule) {
 
   newNode.parent = index;
   newNode.rule = rule;
+  newNode.depth++;
 
   graph.nodes[index].key!.value.children.add(graph.nodes.length);
 

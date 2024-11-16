@@ -98,34 +98,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                     errorStyle: TextStyle(color: Colors.red),
                                   ),
                                   validator: _validateEquation,
-                                  onChanged: (value) {
-                                    if (value.contains('=') &&
-                                        value
-                                            .split('=')[1]
-                                            .replaceAll(' ', '')
-                                            .isNotEmpty) {
-                                      if (_formKeys[index]
-                                              .currentState
-                                              ?.validate() ??
-                                          false) {
-                                        setState(() {
-                                          clearGraph(_graph);
-                                          _graph.addNode(Node.Id(MyNode(
-                                              equations: [
-                                                for (TextEditingController text
-                                                    in _controllers)
-                                                  createEquation(text.text)
-                                              ])));
-                                          getVarsAndConstsFromList(
-                                              _graph.nodes[0].key!.value
-                                                  .equations,
-                                              _variables,
-                                              _constants);
-                                          solve(_graph, 0);
-                                        });
-                                      }
-                                    }
-                                  },
                                 ),
                               ),
                               // Кнопка удаления уравнения из системы
@@ -134,19 +106,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                   setState(() {
                                     _formKeys.removeAt(index);
                                     _controllers.removeAt(index);
-                                    if (_graph.nodes.isNotEmpty) {
-                                      clearGraph(_graph);
-                                      _graph.addNode(Node.Id(MyNode(equations: [
-                                        for (TextEditingController text
-                                            in _controllers)
-                                          createEquation(text.text)
-                                      ])));
-                                      getVarsAndConstsFromList(
-                                          _graph.nodes[0].key!.value.equations,
-                                          _variables,
-                                          _constants);
-                                      solve(_graph, 0);
-                                    }
                                   });
                                 },
                                 icon: const Icon(Icons.delete),
@@ -170,11 +129,39 @@ class _MyHomePageState extends State<MyHomePage> {
                                   .add(createEquation('='));
                             } else {
                               _graph.addNode(Node.Id(
-                                  MyNode(equations: [createEquation('=')])));
+                                  MyNode(depth: 0, equations: [createEquation('=')])));
                             }
                           });
                         },
                         child: const Text('Добавить уравнение')),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    // Кнопка запуска поиска решений
+                    TextButton(
+                        onPressed: () {
+                          setState(() {
+                            if (_formKeys.every((formKey) => formKey.currentState
+                                              ?.validate() ??
+                                          false)) {
+                              clearGraph(_graph);
+                              _graph.addNode(Node.Id(MyNode(
+                                  depth: 0,
+                                  equations: [
+                                    for (TextEditingController text
+                                        in _controllers)
+                                      createEquation(text.text)
+                                  ])));
+                              getVarsAndConstsFromList(
+                                  _graph.nodes[0].key!.value
+                                      .equations,
+                                  _variables,
+                                  _constants);
+                              solve(_graph, 0);
+                            }
+                          });
+                        },
+                        child: const Text('Найти решения')),
                   ],
                 ),
               ),
