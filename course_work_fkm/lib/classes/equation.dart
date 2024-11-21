@@ -12,6 +12,11 @@ class Equation {
   });
 
   @override
+  String toString() {
+    return left + ' = ' + right;
+  }
+
+  @override
   bool operator ==(Object other) {
     // Проверяем, является ли other экземпляром Equation
     if (other is! Equation) return false;
@@ -43,7 +48,7 @@ class Equation {
   /// Сокращение констант
   void simplify() {
     // Убираем одинаковые символы с начала
-    while (left.isNotEmpty && right.isNotEmpty && 
+    while (left.length > 1 && right.length > 1 && 
            left[0] == right[0] && 
            left[0].toUpperCase() == left[0]) {
       left = left.substring(1);
@@ -51,11 +56,32 @@ class Equation {
     }
 
     // Убираем одинаковые символы с конца
-    while (left.isNotEmpty && right.isNotEmpty && 
+    while (left.length > 1 && right.length > 1 && 
            left[left.length - 1] == right[right.length - 1] && 
            left[left.length - 1].toUpperCase() == left[left.length - 1]) {
       left = left.substring(0, left.length - 1);
       right = right.substring(0, right.length - 1);
     }
+  }
+
+  /// Функция для получения списка объектов Equation
+  List<Equation> divide() {
+    List<Equation> result = [];
+    int minLength = left.length < right.length ? left.length : right.length;
+
+    // Рекурсивное разбиение
+    if (minLength > 1)
+      for (int i = 1; i < minLength; i++) {
+        String leftSub = left.substring(0, i);
+        String rightSub = right.substring(0, i);
+        // Проверяем, равны ли подстроки по набору символов
+        if (Set.from(leftSub.split('')..sort()).toString() == Set.from(rightSub.split('')..sort()).toString()) {
+          result.add(Equation(left: leftSub, right: rightSub));
+          result.addAll(Equation(left: left.substring(i, left.length), right: right.substring(i, right.length)).divide());
+          return result;
+        }
+      }
+    
+    return [this];
   }
 }

@@ -147,11 +147,18 @@ void createNodeByRule(Graph graph, int index, Rule rule) {
             .replaceAll(rule.variable, rule.rule),
         right: graph.nodes[index].key!.value.equations[i].right
             .replaceAll(rule.variable, rule.rule));
+    
+    // Сокращаем уравнение слева и справа (убираем константы до длины строки в 1 символ)
+    equation.simplify();
+
+    // Разбиваем уравнение
+    List<Equation> equations = equation.divide();
+
     // Проверяем, что нет идентичного уравнения
-    //TODO(Vlad): Доделать метод сокращения уравнений
-    // equation.simplify();
-    if (newNode.equations.every((eq) => eq != equation) && equation.left + equation.right != '')
-      newNode.equations.add(equation);
+    for (Equation equat in equations){
+      if (newNode.equations.every((eq) => eq != equat) && equat.left + equat.right != '')
+        newNode.equations.add(equat);
+    }
   }
 
   newNode.equations.sort(
