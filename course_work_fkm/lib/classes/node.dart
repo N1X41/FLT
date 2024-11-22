@@ -43,12 +43,13 @@ class MyNode {
   }
 
   // Метод для создания копии узла
-  MyNode copy() {
+  MyNode copy({bool? isInSolution}) {
     return MyNode(
       equations: equations,
       parent: parent,
       rule: rule,
       depth: depth,
+      isInSolution: isInSolution ?? false,
     );
   }
 }

@@ -4,12 +4,52 @@ import 'package:course_work_fkm/classes/rule.dart';
 import 'package:course_work_fkm/functions/vars_and_consts.dart';
 import 'package:graphview/GraphView.dart';
 
+/// Возврат графа решения
+Graph? getOnlySolution(Graph graph) {
+  if (graph.nodes[0].key!.value.isInSolution) {
+    final Graph newGraph = Graph();
+    int index = 0;
+    while (index < graph.nodes.length - 1) {
+      if (graph.nodes[index].key!.value.isInSolution) {
+        newGraph.addNode(
+            Node.Id(graph.nodes[index].key!.value.copy(isInSolution: true)));
+        newGraph.nodes[newGraph.nodes.length - 1].key!.value.rule =
+            graph.nodes[index].key!.value.rule;
+        for (int child in graph.nodes[index].key!.value.children)
+          if (graph.nodes[child].key!.value.isInSolution) {
+            if (newGraph.nodes.length > 1)
+              newGraph.addEdge(
+                  newGraph.getNodeUsingId(
+                      newGraph.nodes[newGraph.nodes.length - 2].key!.value),
+                  newGraph.getNodeUsingId(
+                      newGraph.nodes[newGraph.nodes.length - 1].key!.value));
+            index = child;
+          }
+      }
+    }
+    newGraph.addNode(
+        Node.Id(graph.nodes[index].key!.value.copy(isInSolution: true)));
+    newGraph.nodes[newGraph.nodes.length - 1].key!.value.rule =
+        graph.nodes[index].key!.value.rule;
+    if (newGraph.nodes.length > 1)
+      newGraph.addEdge(
+          newGraph.getNodeUsingId(
+              newGraph.nodes[newGraph.nodes.length - 2].key!.value),
+          newGraph.getNodeUsingId(
+              newGraph.nodes[newGraph.nodes.length - 1].key!.value));
+    return newGraph;
+  }
+  return null;
+}
+
+/// Очистка графа
 void clearGraph(Graph graph) {
   graph.nodes.clear();
   graph.edges.clear();
 }
 
-solve(Graph graph, int index) {
+/// Решение графа
+void solve(Graph graph, int index) {
   List<String> variables = [];
   List<String> constants = [];
 
@@ -35,7 +75,8 @@ solve(Graph graph, int index) {
   getVarsAndConstsFromList(
       graph.nodes[index].key!.value.equations, variables, constants);
 
-  for (Rule rule in getAllRules(graph.nodes[0].key!.value.equations, variables, constants)){
+  for (Rule rule in getAllRules(
+      graph.nodes[0].key!.value.equations, variables, constants)) {
     if (!graph.nodes[0].key!.value.isInSolution) {
       createNodeByRule(graph, index, rule);
       solve(graph, graph.nodes.length - 1);
@@ -90,7 +131,7 @@ bool isAlreadyExist(Graph graph, int index) {
 
 /// Выбор правила для преобразования
 List<Rule> getAllRules(
-  List<Equation> equations, List<String> variables, List<String> constants) {
+    List<Equation> equations, List<String> variables, List<String> constants) {
   List<Rule> rules = [];
   // Для каждой переменной создаем список по уровню ликвидности
   for (String vr in variables) {
@@ -101,7 +142,8 @@ List<Rule> getAllRules(
       List<Rule> effective = [];
       List<Rule> nonEffective = [];
       // Проверка наличия переменной - константы на префиксах/суффиксах
-      if (isPrefix(equations, vr, constant) || isSuffix(equations, vr, constant)) {
+      if (isPrefix(equations, vr, constant) ||
+          isSuffix(equations, vr, constant)) {
         if (isPrefix(equations, vr, constant))
           effective.add(Rule(variable: vr, rule: constant + vr));
         if (isSuffix(equations, vr, constant))
@@ -113,27 +155,29 @@ List<Rule> getAllRules(
       rules.addAll(effective);
       rules.addAll(nonEffective);
     }
-  } return rules;
+  }
+  return rules;
 }
 
 /// Проверка на префикс
-bool isPrefix(List<Equation> equations, String variable, String constant){
-  for (Equation equation in equations){
-    if ((variable == equation.left[0] &&
-                constant == equation.right[0]) ||
-            (variable == equation.right[0] &&
-                constant == equation.left[0])) return true;
-  } return false;
+bool isPrefix(List<Equation> equations, String variable, String constant) {
+  for (Equation equation in equations) {
+    if ((variable == equation.left[0] && constant == equation.right[0]) ||
+        (variable == equation.right[0] && constant == equation.left[0]))
+      return true;
+  }
+  return false;
 }
 
 /// Проверка на суффикс
-bool isSuffix(List<Equation> equations, String variable, String constant){
-  for (Equation equation in equations){
+bool isSuffix(List<Equation> equations, String variable, String constant) {
+  for (Equation equation in equations) {
     if ((variable == equation.left[equation.left.length - 1] &&
-                constant == equation.right[equation.right.length - 1]) ||
-            (variable == equation.right[equation.right.length - 1] &&
-                constant == equation.left[equation.left.length - 1])) return true;
-  } return false;
+            constant == equation.right[equation.right.length - 1]) ||
+        (variable == equation.right[equation.right.length - 1] &&
+            constant == equation.left[equation.left.length - 1])) return true;
+  }
+  return false;
 }
 
 /// Создание нового узла
@@ -147,7 +191,7 @@ void createNodeByRule(Graph graph, int index, Rule rule) {
             .replaceAll(rule.variable, rule.rule),
         right: graph.nodes[index].key!.value.equations[i].right
             .replaceAll(rule.variable, rule.rule));
-    
+
     // Сокращаем уравнение слева и справа (убираем константы до длины строки в 1 символ)
     equation.simplify();
 
@@ -155,9 +199,9 @@ void createNodeByRule(Graph graph, int index, Rule rule) {
     List<Equation> equations = equation.divide();
 
     // Проверяем, что нет идентичного уравнения
-    for (Equation equat in equations){
-      if (newNode.equations.every((eq) => eq != equat) && equat.left + equat.right != '')
-        newNode.equations.add(equat);
+    for (Equation equat in equations) {
+      if (newNode.equations.every((eq) => eq != equat) &&
+          equat.left + equat.right != '') newNode.equations.add(equat);
     }
   }
 

@@ -43,6 +43,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final List<String> _variables = [];
   final List<String> _constants = [];
 
+  bool _showOnlySolution = false;
+
   final Graph _graph = Graph();
 
   // Регулярное выражение для проверки уравнения
@@ -128,8 +130,8 @@ class _MyHomePageState extends State<MyHomePage> {
                               _graph.nodes[0].key!.value.equations
                                   .add(createEquation('='));
                             } else {
-                              _graph.addNode(Node.Id(
-                                  MyNode(depth: 0, equations: [createEquation('=')])));
+                              _graph.addNode(Node.Id(MyNode(
+                                  depth: 0, equations: [createEquation('=')])));
                             }
                           });
                         },
@@ -141,20 +143,16 @@ class _MyHomePageState extends State<MyHomePage> {
                     TextButton(
                         onPressed: () {
                           setState(() {
-                            if (_formKeys.every((formKey) => formKey.currentState
-                                              ?.validate() ??
-                                          false)) {
+                            if (_formKeys.every((formKey) =>
+                                formKey.currentState?.validate() ?? false)) {
                               clearGraph(_graph);
-                              _graph.addNode(Node.Id(MyNode(
-                                  depth: 0,
-                                  equations: [
-                                    for (TextEditingController text
-                                        in _controllers)
-                                      createEquation(text.text)
-                                  ])));
+                              _graph.addNode(Node.Id(
+                                  MyNode(depth: 0, equations: [
+                                for (TextEditingController text in _controllers)
+                                  createEquation(text.text)
+                              ])));
                               getVarsAndConstsFromList(
-                                  _graph.nodes[0].key!.value
-                                      .equations,
+                                  _graph.nodes[0].key!.value.equations,
                                   _variables,
                                   _constants);
                               solve(_graph, 0);
@@ -209,51 +207,67 @@ class _MyHomePageState extends State<MyHomePage> {
                 const SizedBox(
                   height: 10,
                 ),
+                // Чекбокс для отображения только решения
+                CheckboxListTile(
+                  title: Text("Отображать только решение"),
+                  value: _showOnlySolution,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _showOnlySolution = value ?? false; // Обновляем состояние
+                    });
+                  },
+                ),
                 // Виджет графа
                 if (_graph.nodes[0].key!.value.equations.length != 0 &&
                     !(_graph.nodes[0].key!.value.equations[0].left == '' &&
                         _graph.nodes[0].key!.value.equations[0].right == '' &&
                         _graph.nodes[0].key!.value.equations.length == 1))
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: GraphView(
-                      graph: _graph,
-                      algorithm: BuchheimWalkerAlgorithm(
-                          BuchheimWalkerConfiguration(),
-                          TreeEdgeRenderer(BuchheimWalkerConfiguration())),
-                      builder: (Node node) {
-                        // Виджет внешнего вида графа
-                        return Column(
-                          children: [
-                            if (node.key!.value.rule != null)
-                              Text(
-                                  node.key!.value.rule.variable +
-                                      ' => ' +
-                                      node.key!.value.rule.rule,
-                                  style: const TextStyle(
-                                      color: Colors.black, fontSize: 24)),
-                            Container(
-                              decoration: BoxDecoration(
-                                borderRadius:
-                                    const BorderRadius.all(Radius.circular(10)),
-                                border: Border.all(
-                                  color: node.key!.value.isInSolution
-                                      ? Colors.green
-                                      : Colors.red,
-                                  width: 2,
-                                ),
-                                color: Colors.transparent,
-                              ),
-                              padding: const EdgeInsets.all(8),
-                              child: Text(node.key!.value.getNodeText(),
-                                  style: const TextStyle(
-                                      color: Colors.black, fontSize: 24)),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
+                  (_showOnlySolution &&
+                          !_graph.nodes[0].key!.value.isInSolution)
+                      ? const Text('Нет решений')
+                      : SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: GraphView(
+                            graph: _showOnlySolution
+                                ? getOnlySolution(_graph)!
+                                : _graph,
+                            algorithm: BuchheimWalkerAlgorithm(
+                                BuchheimWalkerConfiguration(),
+                                TreeEdgeRenderer(
+                                    BuchheimWalkerConfiguration())),
+                            builder: (Node node) {
+                              // Виджет внешнего вида графа
+                              return Column(
+                                children: [
+                                  if (node.key!.value.rule != null)
+                                    Text(
+                                        node.key!.value.rule.variable +
+                                            ' => ' +
+                                            node.key!.value.rule.rule,
+                                        style: const TextStyle(
+                                            color: Colors.black, fontSize: 24)),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(10)),
+                                      border: Border.all(
+                                        color: node.key!.value.isInSolution
+                                            ? Colors.green
+                                            : Colors.red,
+                                        width: 2,
+                                      ),
+                                      color: Colors.transparent,
+                                    ),
+                                    padding: const EdgeInsets.all(8),
+                                    child: Text(node.key!.value.getNodeText(),
+                                        style: const TextStyle(
+                                            color: Colors.black, fontSize: 24)),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        )
               ],
               const SizedBox(
                 height: 20,
