@@ -1,5 +1,13 @@
 import 'package:course_work_fkm/classes/equation.dart';
 
+bool isVar (String char){
+  return char.toLowerCase() == char;
+}
+
+bool isConst (String char){
+  return char.toUpperCase() == char;
+}
+
 void getVarsAndConstsFromList(
     List<Equation> equations, List<String> variables, List<String> constants) {
   variables.clear();
