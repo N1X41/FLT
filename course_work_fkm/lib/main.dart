@@ -263,6 +263,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                         style: const TextStyle(
                                             color: Colors.black, fontSize: 24)),
                                   ),
+                                  errorWidget(node.key!.value.error_code)
                                 ],
                               );
                             },
@@ -277,5 +278,42 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
+  }
+}
+
+Widget errorWidget(int error_code){
+  switch(error_code){
+    case 1:
+      return Column(
+        children: [
+          const SizedBox(height: 10,),
+          Icon(
+            Icons.do_not_disturb_alt,
+            size: 40,
+          )
+        ]
+      );
+    case 2:
+      return Column(
+        children: [
+          const SizedBox(height: 10,),
+          Icon(
+            Icons.autorenew,
+            size: 40,
+          )
+        ]
+      );
+    case 3:
+      return Column(
+        children: [
+          const SizedBox(height: 10,),
+          Icon(
+            Icons.remove_circle_outline,
+            size: 40,
+          )
+        ]
+      );
+    default:
+      return SizedBox.shrink();
   }
 }

@@ -20,6 +20,13 @@ class MyNode {
   /// Глубина развертки
   int depth;
 
+  /// Причина закрытия ветки
+  /// 0 - Узел не конечный
+  /// 1 - Логическая ошибка
+  /// 2 - Повторение узла
+  /// 3 - Превышение глубины погружения
+  int error_code;
+
   // Конструктор класса Node
   MyNode({
     required this.equations,
@@ -27,6 +34,7 @@ class MyNode {
     int? parent,
     Rule? rule,
     List<int>? children,
+    this.error_code = 0,
     this.isInSolution = false,
   }) : children = children ?? [];
 
@@ -50,6 +58,7 @@ class MyNode {
       rule: rule,
       depth: depth,
       isInSolution: isInSolution ?? false,
+      error_code: 0,
     );
   }
 }

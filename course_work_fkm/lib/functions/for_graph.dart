@@ -53,9 +53,6 @@ void solve(Graph graph, int index) {
   List<String> variables = [];
   List<String> constants = [];
 
-  // Тестовое уловие
-  if (graph.nodes[index].key!.value.depth > 5) return;
-
   // Если система решена - выходим
   if (graph.nodes[0].key!.value.isInSolution) return;
 
@@ -65,11 +62,23 @@ void solve(Graph graph, int index) {
     return;
   }
 
+  // Тестовое уловие
+  if (graph.nodes[index].key!.value.depth > 5) {
+    graph.nodes[index].key!.value.error_code = 3;
+    return;
+  };
+
   // Если неразрешима - заркываем ветку и выходим
-  if (isFalseEquation(graph.nodes[index].key!.value.equations)) return;
+  if (isFalseEquation(graph.nodes[index].key!.value.equations)) {
+    graph.nodes[index].key!.value.error_code = 1;
+    return;
+  };
 
   // Если уже есть идентичное решение - закрываем ветку
-  if (isAlreadyExist(graph, index)) return;
+  if (isAlreadyExist(graph, index)) {
+    graph.nodes[index].key!.value.error_code = 2;
+    return;
+  };
 
   // Получаем актальный список переменных и констант
   getVarsAndConstsFromList(
@@ -153,7 +162,7 @@ List<Rule> getAllRules(
         nonEffective.add(Rule(variable: vr, rule: vr + constant));
       }
       rules.addAll(effective);
-      rules.addAll(nonEffective);
+      // rules.addAll(nonEffective);
     }
   }
   return rules;
