@@ -47,16 +47,18 @@ class Equation {
 
   /// Сокращение переменных и констант
   void simplify() {
-    // Убираем одинаковые символы с начала
-    while (left.length > 1 && right.length > 1 && left[0] == right[0]) {
-      left = left.substring(1);
-      right = right.substring(1);
-    }
+    if (left.length > 1 && right.length > 1) {
+      // Убираем одинаковые символы с начала
+      while (left.length >= 1 && right.length >= 1 && left[0] == right[0]) {
+        left = left.substring(1);
+        right = right.substring(1);
+      }
 
-    // Убираем одинаковые символы с конца
-    while (left.length > 1 && right.length > 1 && left[left.length - 1] == right[right.length - 1]) {
-      left = left.substring(0, left.length - 1);
-      right = right.substring(0, right.length - 1);
+      // Убираем одинаковые символы с конца
+      while (left.length >= 1 && right.length >= 1 && left[left.length - 1] == right[right.length - 1]) {
+        left = left.substring(0, left.length - 1);
+        right = right.substring(0, right.length - 1);
+      }
     }
   }
 

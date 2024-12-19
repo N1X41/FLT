@@ -1,6 +1,7 @@
 import 'package:course_work_fkm/classes/equation.dart';
 import 'package:course_work_fkm/classes/node.dart';
 import 'package:course_work_fkm/classes/rule.dart';
+import 'package:course_work_fkm/functions/for_nodes.dart';
 import 'package:course_work_fkm/functions/vars_and_consts.dart';
 import 'package:graphview/GraphView.dart';
 
@@ -200,7 +201,7 @@ void createNodeByRule(Graph graph, int index, Rule rule) {
             .replaceAll(rule.variable, rule.rule),
         right: graph.nodes[index].key!.value.equations[i].right
             .replaceAll(rule.variable, rule.rule));
-
+    
     // Сокращаем уравнение слева и справа (убираем константы до длины строки в 1 символ)
     equation.simplify();
 
@@ -214,6 +215,10 @@ void createNodeByRule(Graph graph, int index, Rule rule) {
     }
   }
 
+  // Делаем подстановки
+  newNode.equations = makeSubstitution(newNode.equations);
+
+  // Сортируем уравнения
   newNode.equations.sort(
     (a, b) {
       return (a.left + a.right).compareTo(b.left + b.right);

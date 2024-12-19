@@ -1,7 +1,7 @@
 import 'package:course_work_fkm/classes/equation.dart';
 
 bool isVar (String char){
-  return char.toLowerCase() == char;
+  return char.toLowerCase() == char && char != '';
 }
 
 bool isConst (String char){

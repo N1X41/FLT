@@ -47,7 +47,7 @@ class MyNode {
       }
     }
 
-    return text.substring(1);
+    return text != '' ? text.substring(1) : '';
   }
 
   // Метод для создания копии узла
