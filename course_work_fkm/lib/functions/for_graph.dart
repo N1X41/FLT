@@ -63,23 +63,15 @@ void solve(Graph graph, int index) {
     return;
   }
 
-  /// Проверка ложности
-  bool isFalseEquation(List<Equation> equations) {
-    for (Equation equation in equations) {
-      if (equation.isFalse()) return true;
-    }
-    return false;
-  }
+  // Если неразрешима - заркываем ветку и выходим
+  if (isFalseEquation(graph.nodes[index].key!.value.equations)) {
+    graph.nodes[index].key!.value.error_code = 1;
+    return;
+  };
   
   // Тестовое уловие
   if (graph.nodes[index].key!.value.depth > 5) {
     graph.nodes[index].key!.value.error_code = 3;
-    return;
-  };
-
-  // Если неразрешима - заркываем ветку и выходим
-  if (isFalseEquation(graph.nodes[index].key!.value.equations)) {
-    graph.nodes[index].key!.value.error_code = 1;
     return;
   };
 
@@ -94,7 +86,7 @@ void solve(Graph graph, int index) {
       graph.nodes[index].key!.value.equations, variables, constants);
 
   for (Rule rule in getAllRules(
-      graph.nodes[0].key!.value.equations, variables, constants)) {
+      graph.nodes[index].key!.value.equations, variables, constants)) {
     if (!graph.nodes[0].key!.value.isInSolution) {
       createNodeByRule(graph, index, rule);
       solve(graph, graph.nodes.length - 1);
@@ -108,6 +100,14 @@ void makeIsInSolution(Graph graph, int index) {
   if (graph.nodes[index].key!.value.parent != null) {
     makeIsInSolution(graph, graph.nodes[index].key!.value.parent);
   }
+}
+
+/// Проверка ложности
+bool isFalseEquation(List<Equation> equations) {
+  for (Equation equation in equations) {
+    if (equation.isFalse()) return true;
+  }
+  return false;
 }
 
 /// Проверка разрешимости системы
@@ -149,9 +149,8 @@ List<Rule> getAllRules(
     // Добавляем пустой переход
     rules.add(Rule(variable: vr, rule: ''));
     for (String constant in constants) {
-      // Создаем два листа - префиксные/суффиксные переходы, и "необоснованные"
+      // Создаем два листа - префиксные/суффиксные переходы для констант
       List<Rule> effective = [];
-      List<Rule> nonEffective = [];
       // Проверка наличия переменной - константы на префиксах/суффиксах
       if (isPrefix(equations, vr, constant) ||
           isSuffix(equations, vr, constant)) {
@@ -159,13 +158,24 @@ List<Rule> getAllRules(
           effective.add(Rule(variable: vr, rule: constant + vr));
         if (isSuffix(equations, vr, constant))
           effective.add(Rule(variable: vr, rule: vr + constant));
-      } else {
-        nonEffective.add(Rule(variable: vr, rule: constant + vr));
-        nonEffective.add(Rule(variable: vr, rule: vr + constant));
       }
       rules.addAll(effective);
-      // rules.addAll(nonEffective);
     }
+    // TODO(Vlad): когда необходимо?
+    // for (String variable in variables) {
+    //   // Создаем два листа - префиксные/суффиксные переходы для переменных
+    //   List<Rule> nonEffective = [];
+    //   // Проверка наличия переменной - переменной на префиксах/суффиксах
+    //   if (variable != vr)
+    //     if (isPrefix(equations, vr, variable) ||
+    //         isSuffix(equations, vr, variable)) {
+    //       if (isPrefix(equations, vr, variable))
+    //         nonEffective.add(Rule(variable: vr, rule: variable + vr));
+    //       if (isSuffix(equations, vr, variable))
+    //         nonEffective.add(Rule(variable: vr, rule: vr + variable));
+    //     }
+    //   rules.addAll(nonEffective);
+    // }
   }
   return rules;
 }
