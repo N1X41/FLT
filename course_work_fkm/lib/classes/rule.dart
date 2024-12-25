@@ -10,4 +10,9 @@ class Rule {
     required this.variable,
     required this.rule,
   });
+
+  @override
+  String toString() {
+    return variable + ' = ' + rule;
+  }
 }

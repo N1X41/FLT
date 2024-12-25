@@ -63,6 +63,14 @@ void solve(Graph graph, int index) {
     return;
   }
 
+  /// Проверка ложности
+  bool isFalseEquation(List<Equation> equations) {
+    for (Equation equation in equations) {
+      if (equation.isFalse()) return true;
+    }
+    return false;
+  }
+  
   // Тестовое уловие
   if (graph.nodes[index].key!.value.depth > 5) {
     graph.nodes[index].key!.value.error_code = 3;
@@ -110,13 +118,6 @@ bool isSolved(List<Equation> equations) {
   return true;
 }
 
-/// Проверка ложности
-bool isFalseEquation(List<Equation> equations) {
-  for (Equation equation in equations) {
-    if (equation.isFalse()) return true;
-  }
-  return false;
-}
 
 /// Проверка на наличие идентичного узла
 bool isAlreadyExist(Graph graph, int index) {
@@ -216,7 +217,10 @@ void createNodeByRule(Graph graph, int index, Rule rule) {
   }
 
   // Делаем подстановки
-  newNode.equations = makeSubstitution(newNode.equations);
+  var (newEquations, wasSubstitution, substitution) = makeSubstitution(newNode.equations);
+  newNode.equations = newEquations;
+  newNode.wasSubstitution = wasSubstitution;
+  newNode.substitution = substitution;
 
   // Сортируем уравнения
   newNode.equations.sort(

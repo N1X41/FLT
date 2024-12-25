@@ -243,7 +243,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     Text(
                                         node.key!.value.rule.variable +
                                             ' => ' +
-                                            node.key!.value.rule.rule,
+                                            node.key!.value.rule.rule + (node.key!.value.wasSubstitution ? ' (Subst.: ${node.key!.value.substitution.toString()})' : ''),
                                         style: const TextStyle(
                                             color: Colors.black, fontSize: 24)),
                                   Container(
@@ -253,7 +253,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                       border: Border.all(
                                         color: node.key!.value.isInSolution
                                             ? Colors.green
-                                            : Colors.red,
+                                            : node.key!.value.error_code == 3
+                                              ? Colors.red
+                                              : Colors.amber,
                                         width: 2,
                                       ),
                                       color: Colors.transparent,

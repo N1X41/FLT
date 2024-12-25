@@ -20,6 +20,12 @@ class MyNode {
   /// Глубина развертки
   int depth;
 
+  /// Флаг произведения подстановки
+  bool wasSubstitution;
+
+  /// Правило переписывания
+  Rule? substitution;
+
   /// Причина закрытия ветки
   /// 0 - Узел не конечный
   /// 1 - Логическая ошибка
@@ -33,9 +39,11 @@ class MyNode {
     required this.depth,
     int? parent,
     Rule? rule,
+    Rule? substitution,
     List<int>? children,
     this.error_code = 0,
     this.isInSolution = false,
+    this.wasSubstitution = false,
   }) : children = children ?? [];
 
   String getNodeText() {
@@ -47,7 +55,7 @@ class MyNode {
       }
     }
 
-    return text != '' ? text.substring(1) : '';
+    return text != '' ? text.substring(1) : 'Система свернулась';
   }
 
   // Метод для создания копии узла

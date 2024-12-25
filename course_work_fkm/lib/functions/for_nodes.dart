@@ -1,4 +1,5 @@
 import 'package:course_work_fkm/classes/equation.dart';
+import 'package:course_work_fkm/classes/rule.dart';
 import 'package:course_work_fkm/functions/vars_and_consts.dart';
 
 /// Создает объект класса Equation из строки UI
@@ -9,11 +10,11 @@ Equation createEquation(String equation) {
 }
 
 /// Проведение подстановок в системе уравнений
-List<Equation> makeSubstitution(List<Equation> equations){
+(List<Equation>, bool, Rule?) makeSubstitution(List<Equation> equations){
   List<Equation> newEquations = [];
 
   // Если уравнений нет/одно - вернуть список
-  if (equations.length <= 1) return equations;
+  if (equations.length <= 1) return (equations, false, null);
 
   // Проверка на наличие нулевых подстановок (x = ABA|_)
   for (int i = 0; i < equations.length; i++){
@@ -30,7 +31,7 @@ List<Equation> makeSubstitution(List<Equation> equations){
             newEquations.add(equations[i]);
         }
       }
-      return newEquations;
+      return (newEquations, true, Rule(variable: equations[i].right[0], rule: equations[i].left));
     }
     else if (equations[i].left.length == 1 && isVar(equations[i].left[0])) {
       for (int j = 0; j < equations.length; j++) {
@@ -45,7 +46,7 @@ List<Equation> makeSubstitution(List<Equation> equations){
             newEquations.add(equations[i]);
         }
       }
-      return newEquations;
+      return (newEquations, true, Rule(variable: equations[i].left[0], rule: equations[i].right));
     }
   }
   
@@ -99,9 +100,9 @@ List<Equation> makeSubstitution(List<Equation> equations){
         eq.simplify();
         newEquations.add(eq);
       }
-    return newEquations;
+    return (newEquations, true, Rule(variable: maxBenefit.left, rule: maxBenefit.right));
   } else {
-    return equations;
+    return (equations, false, null);
   }
 }
 
